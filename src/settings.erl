@@ -5,7 +5,7 @@
 -export([get/2]).
 
 %% Get Value of Key in specified configuration (Conf)
-%% Currently re-reads file on every call, but these 
+%% Currently re-reads file on every call, but these
 %% shouldn't be read too often
 get(Conf, Key) ->
     % If user override exists, just return that
@@ -15,7 +15,7 @@ get(Conf, Key) ->
             % No override, use default
             io:format("Default: "),
             Value = get_default(Conf, Key);
-        UserValue -> 
+        UserValue ->
             io:format("Override: "),
             Value = UserValue
     end,
@@ -36,28 +36,34 @@ get(File, Conf, Key) ->
         undefined -> undefined;
         ConfSettings ->
             case proplists:get_value(Key, ConfSettings) of
-                undefined -> 
+                undefined ->
                     undefined;
-                Value -> 
+                Value ->
                     Value
             end
-    end. 
+    end.
 
 
 get_default(Conf, Key) when is_atom(Conf) ->
     ConfList = erlang:atom_to_list(Conf),
     get_default(ConfList, Key);
 get_default(Conf, Key) ->
+    % XXX debug
+    %io:format("Conf: ~p~nKey: ~p~n", [Conf,Key]),
+    %io:format("Is atom? ~p~n", [is_atom(Key)]),
     DefaultConf = "../default_conf/" ++ Conf ++ ".conf.erl",
     case get(DefaultConf, Conf, Key) of
         undefined ->
-            Reason = "Could not find key " ++ Key ++ " in conf " ++ Conf,
+            Reason = "Could not find key '"
+                ++ atom_to_list(Key)
+                ++ "' in "
+                ++ "'" ++ Conf ++ "' config section.",
             throw({error, Reason});
         Value ->
             Value
-    end. 
+    end.
 
 get_user(Conf, Key) ->
     UserConf = "../user_conf/user.conf.erl",
-    get(UserConf, Conf, Key).    
+    get(UserConf, Conf, Key).
 
