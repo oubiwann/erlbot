@@ -27,12 +27,12 @@ get(File, Conf, Key) when is_list(Conf) ->
     get(File, ConfAtom, Key);
 get(File, Conf, Key) ->
     % XXX debug
-    io:format("File: ~p~nConf: ~p~nKey: ~p~n", [File,Conf,Key]),
+    %io:format("File: ~p~nConf: ~p~nKey: ~p~n", [File,Conf,Key]),
     case filelib:is_regular(File) of
         true ->
             {ok, AllSettings} = file:consult(File),
             % XXX debug
-            io:format("Got settings: ~p~n", [AllSettings]);
+            %io:format("Got settings: ~p~n", [AllSettings]);
         false ->
             AllSettings = []
     end,
