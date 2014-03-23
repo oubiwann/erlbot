@@ -15,16 +15,20 @@ Author: dev@wolfplusplus.com
 
 ## Running
 
+If you'd like to run erl bot in dev mode (running in the foreground, logging
+everything to ``stdout``), do the following (you'll need to compile first):
 ```bash
-    $ ./rebar compile
-    $ erl -pa ./ebin -eval "application:start('erlbot')" -noshell
+    $ make compile
+    $ make dev
 ```
 
-That will run erlbot in the foreground. If you'd like to daemonize the process:
-
+If you'd like to daemonize the process:
 ```bash
-    $ erl -pa ./ebin -eval "application:start('erlbot')" \
-      -name erlbot@${HOSTNAME} -setcookie abc123 -noshell -detached
+    $ make run
+```
+or
+```bash
+    $ make daemon
 ```
 
 
@@ -36,11 +40,8 @@ shell.
 If you're running in daemonized mode:
 
 ```bash
-    $ erl -pa ./ebin -eval "rpc:call('erlbot@${HOSTNAME}', init, stop, [])" \
-      -name controller@${HOSTNAME} -setcookie abc123 -noshell -s erlang halt
+    $ make stop
 ```
-
-application:stop(erlbot).
 
 
 ## Supervision Tree
