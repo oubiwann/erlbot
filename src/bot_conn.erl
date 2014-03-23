@@ -11,7 +11,7 @@
                  terminate/2, code_change/3]).
 -record(state, {server, port, sock}).
 
-start_link([Server, Port]) -> 
+start_link([Server, Port]) ->
     gen_server:start_link({local, bot_svc}, ?MODULE, [Server, Port], []).
 
 init([Server, Port]) ->
@@ -24,10 +24,10 @@ init([Server, Port]) ->
 % Connect to an IRC server with a given Host and Port.  Set up the TCP option to
 % give us messages on a line-by-line basis.
 connect(Host, Port) ->
-    TcpOptions = [binary, {active, true}, {packet, line}, {keepalive, true}], 
+    TcpOptions = [binary, {active, true}, {packet, line}, {keepalive, true}],
    io:format("[~s] Connecting to ~s:~p~n", [?MODULE, Host, Port]),
     case gen_tcp:connect(Host, Port, TcpOptions) of
-        {ok, Sock} -> 
+        {ok, Sock} ->
             gen_server:cast(bot_svc, {new_sock, Sock}),
             irc_router:connected();
         {error, Reason} ->
@@ -79,7 +79,7 @@ handle_call(terminate, _From, S) ->
 %% Flush all messages so they dont queue up
 flush() ->
     receive
-        _ -> 
+        _ ->
             io:format("Flushing...~n"),
             flush()
     after 0 ->

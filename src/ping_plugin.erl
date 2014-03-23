@@ -6,7 +6,7 @@
 -include("bot.hrl").
 
 %% gen_server specfic
-start_link() -> 
+start_link() ->
     gen_server:start_link(?MODULE, [], []).
 
 init([]) ->
@@ -21,7 +21,7 @@ handle_cast({irc_router, msg_rec, #irc_msg{cmd = <<"PING">>, args = [Args]}}, S)
     Reply = << "PONG ", Args/binary >>,
     irc_send:raw(Reply),
     {noreply, S};
-handle_cast(_Msg, S = #state{}) -> 
+handle_cast(_Msg, S = #state{}) ->
     {noreply, S}.
 
 handle_info(Msg, S) ->

@@ -14,7 +14,7 @@
 -define(BLINK_DELAY, 250).
 
 %% gen_server specfic
-start_link() -> 
+start_link() ->
     gen_server:start_link({local, led_svc}, ?MODULE, [], []).
 
 init([]) ->
@@ -30,17 +30,17 @@ init([]) ->
 on(Color) ->
     gen_server:cast(led_svc, {on, Color}).
 
-%% Turn Color LED OFF 
+%% Turn Color LED OFF
 off(Color) ->
     gen_server:cast(led_svc, {off, Color}).
 
-%% Blink Color LED Times 
+%% Blink Color LED Times
 blink(Color, Times) ->
     % A blink is 1 on/off cycle, we translate this to state changes
     StateChanges = Times * 2,
     blink_cast(Color, StateChanges).
 
-%% Private 
+%% Private
 
 %% Used to turn an led on and off
 toggle(Color, Pin, LedState) ->
@@ -52,13 +52,13 @@ toggle(Color, Pin, LedState) ->
     end,
     ok = file:write_file(File, Value ++ "\n").
 
-%% Gets called by public interface and via apply_after 
+%% Gets called by public interface and via apply_after
 blink_cast(Color, StateChangesLeft) ->
     gen_server:cast(led_svc, {blink, Color, StateChangesLeft}).
 
 % 0 state changes means we're done
 blink(_Color, _Pin, StateChangesLeft) when StateChangesLeft =< 0 -> {ok, done};
-blink(Color, Pin, StateChangesLeft) -> 
+blink(Color, Pin, StateChangesLeft) ->
     io:format("[~s] Blink ~p ~p~n", [?MODULE, Color, StateChangesLeft]),
     % On even states on, odd Off
     case StateChangesLeft rem 2 of
@@ -87,7 +87,7 @@ replace_blink_to_ref(Color, NewTRef, Blinking2TRef) ->
 
 % Remove TRef and cancel apply timer if it exists
 cancel_blink(Color, Blinking2TRef) ->
-    case proplists:get_value(Color, Blinking2TRef) of 
+    case proplists:get_value(Color, Blinking2TRef) of
         undefined -> ok;
         TRef -> timer:cancel(TRef)
     end,
@@ -95,21 +95,21 @@ cancel_blink(Color, Blinking2TRef) ->
 
 %% Event Loop
 
-handle_cast({blink, Color, StateChangesLeft}, S = #state{led_pins=Color2Pin, blinking_led=BlinkingLed2TRef}) -> 
+handle_cast({blink, Color, StateChangesLeft}, S = #state{led_pins=Color2Pin, blinking_led=BlinkingLed2TRef}) ->
     Pin = get_pin_for_color(Color, Color2Pin),
-    case blink(Color, Pin, StateChangesLeft) of 
+    case blink(Color, Pin, StateChangesLeft) of
         {ok, done} -> NewBlinkingLed2TRef = cancel_blink(Color, BlinkingLed2TRef);
         {ok, TRef} -> NewBlinkingLed2TRef = replace_blink_to_ref(Color, TRef, BlinkingLed2TRef)
     end,
     {noreply, S#state{blinking_led=NewBlinkingLed2TRef}};
 %% LedState should be either on or off
-handle_cast({LedState, Color}, S = #state{led_pins=Color2Pin, blinking_led=BlinkingLed2TRef}) -> 
+handle_cast({LedState, Color}, S = #state{led_pins=Color2Pin, blinking_led=BlinkingLed2TRef}) ->
     Pin = get_pin_for_color(Color, Color2Pin),
     % Cancel blinking in case we were blinking
     NewBlinkingLed2TRef = cancel_blink(Color, BlinkingLed2TRef),
     toggle(Color, Pin, LedState),
     {noreply, S#state{blinking_led=NewBlinkingLed2TRef}};
-handle_cast(_Msg, S) -> 
+handle_cast(_Msg, S) ->
     {noreply, S}.
 
 handle_info(Msg, S) ->

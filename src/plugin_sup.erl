@@ -28,7 +28,7 @@ load_plugins() ->
             load_plugins(Plugins),
             ok
     end.
-    
+
 get_plugins() ->
      [
       {nick_plugin_id,

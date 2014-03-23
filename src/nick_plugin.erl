@@ -7,7 +7,7 @@
 -include("bot.hrl").
 
 %% gen_server specfic
-start_link() -> 
+start_link() ->
     gen_server:start_link(?MODULE, [], []).
 
 init([]) ->
@@ -37,7 +37,7 @@ handle_cast({irc_router, connected}, S = #state{pref_nick=Nick}) ->
     {noreply, S#state{current_nick=Nick, nick_number=1}};
 handle_cast({irc_router, disconnected}, S) ->
     {noreply, S#state{current_nick = <<>>}};
-handle_cast(_Msg, S = #state{}) -> 
+handle_cast(_Msg, S = #state{}) ->
     {noreply, S}.
 
 handle_info(Msg, S) ->

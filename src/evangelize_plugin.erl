@@ -6,12 +6,12 @@
 -export([start_link/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 -record(state, {compiled_regex, quiet_nicks=[]}).
-% Time to ignore follow up erlang messages from the same user 
+% Time to ignore follow up erlang messages from the same user
 % 30 seconds
 -define(WAIT_BETWEEN_FACTS, 30000).
 
 %% gen_server specfic
-start_link() -> 
+start_link() ->
     gen_server:start_link(?MODULE, [], []).
 
 init([]) ->
@@ -24,7 +24,7 @@ init([]) ->
     {ok, #state{compiled_regex=MP}}.
 
 handle_cast({irc_router, chan_msg, {NickFrom, Channel, Line}}, S = #state{compiled_regex=CRegEx, quiet_nicks=Nicks}) ->
-    case {re:run(Line, CRegEx), lists:member(NickFrom, Nicks)} of 
+    case {re:run(Line, CRegEx), lists:member(NickFrom, Nicks)} of
         {{match, _}, false}->
             % Line contained Erlang AND first time nick uttered it within window
             Fact = erlangfacts:getrandom(),
@@ -34,10 +34,10 @@ handle_cast({irc_router, chan_msg, {NickFrom, Channel, Line}}, S = #state{compil
             io:format("[~s] Silencing ~s for ~p~n", [?MODULE, NickFrom, ?WAIT_BETWEEN_FACTS]),
             erlang:send_after(?WAIT_BETWEEN_FACTS, self(), {unsilence, NickFrom}),
             {noreply, S#state{quiet_nicks=QNicks}};
-        _ -> 
+        _ ->
             {noreply, S}
     end;
-handle_cast(_Msg, S) -> 
+handle_cast(_Msg, S) ->
     {noreply, S}.
 
 handle_info({unsilence, Nick}, S = #state{quiet_nicks=Nicks}) ->

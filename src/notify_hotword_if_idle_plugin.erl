@@ -8,7 +8,7 @@
 -record(state, {hotwords}).
 
 %% gen_server specfic
-start_link() -> 
+start_link() ->
     io:format("[~s] Start.~n", [?MODULE]),
     gen_server:start_link({local, chanbuffer}, ?MODULE, [], []).
 
@@ -20,9 +20,9 @@ init([]) ->
 
 add_hotword(Hotwords, NickFrom, Args) ->
     case re:split(Args, " ", [{parts, 2}, {return, binary}]) of
-        [Hotword, Email] -> 
+        [Hotword, Email] ->
             add_hotword(Hotwords, NickFrom, Hotword, Email);
-        _ -> 
+        _ ->
             irc_send:priv(NickFrom, <<"Invalid notify_hotword arguments. notify_hotword hotword your@emailaddress.com">>),
             Hotwords
     end.
@@ -33,13 +33,13 @@ add_hotword(Hotwords, NickFrom, NewHotword, Email) ->
     case orddict:find(LowerHotword, Hotwords) of
         {ok, HotwordEmailList} ->
             case lists:member(LowerEmail, HotwordEmailList) of
-                false -> 
+                false ->
                     UpdatedEList = [LowerEmail|HotwordEmailList];
                 true ->
                     irc_send:priv(NickFrom, <<"Hotword and email combination already registered.">>),
                     UpdatedEList = HotwordEmailList
             end;
-        error -> 
+        error ->
             UpdatedEList = [LowerEmail]
     end,
     orddict:store(LowerHotword, UpdatedEList, Hotwords),
@@ -54,7 +54,7 @@ handle_cast({irc_router, cmd_chan, {NickFrom, _Channel, <<"help">>, _Args}}, S) 
     io:format("[~s] help match ~n", [?MODULE]),
     irc_send:priv(NickFrom, <<"Plugin: notify_hotword - Get notified via email if a hotword is sent to a channel and you don't respond to it.  Example: erlbot notify_hotword wolfman nelson.wolf@salesforce.com">>),
     {noreply, S};
-handle_cast(_Msg, S = #state{}) -> 
+handle_cast(_Msg, S = #state{}) ->
     {noreply, S}.
 
 handle_info(Msg, S) ->

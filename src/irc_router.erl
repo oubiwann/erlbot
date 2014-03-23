@@ -2,7 +2,7 @@
 %%% and sent to subscribed plugins as Tuple's that are easier to process
 -module(irc_router).
 -behavior(gen_server).
-%% Public 
+%% Public
 -export([start_link/1, timestamp/0, timestamp/1, format_irc_line/2, add_sub/1, remove_sub/1]).
 %% Don't call these unless you really know what you're doing
 -export([recv_raw/1, connected/0, disconnected/0]).
@@ -25,23 +25,23 @@ init([Cmd_word]) ->
 
 %% Plugins call this as they initialize
 %% Subscribed Pids will get sent parsed irc messages
-add_sub(Pid) -> 
+add_sub(Pid) ->
     erlang:monitor(process, Pid),
     gen_server:call(bot_router, {add_sub, Pid}),
     ok.
 
 %% When the Plugin Pid goes away, we automatically unsubscribe them
 %% But if you wanted to unsubscribe manually, you could do it with this
-remove_sub(Pid) -> 
+remove_sub(Pid) ->
     gen_server:call(bot_router, {remove_sub, Pid}),
     ok.
 
 %% Return formatted timestamp.  Utility probably should be moved
 timestamp() -> timestamp(now()).
-timestamp(Now) -> 
-        {_, _, _Micros} = Now, 
-        {{YY, MM, DD}, {Hour, Min, Sec}} = calendar:now_to_local_time(Now), 
-        TS = io_lib:format("~4..0w-~2..0w-~2..0w ~2..0w:~2..0w:~2..0w ", 
+timestamp(Now) ->
+        {_, _, _Micros} = Now,
+        {{YY, MM, DD}, {Hour, Min, Sec}} = calendar:now_to_local_time(Now),
+        TS = io_lib:format("~4..0w-~2..0w-~2..0w ~2..0w:~2..0w:~2..0w ",
           [YY, MM, DD, Hour, Min, Sec]),
         list_to_binary(TS).
 
@@ -62,7 +62,7 @@ send_subs_msg(Msg) ->
     ok.
 
 send_subs_msg([], _Msg) -> ok;
-send_subs_msg(Pids, Msg) -> 
+send_subs_msg(Pids, Msg) ->
     io:format("[~s] send subscribers ~p~n", [?MODULE, Msg]),
     [ gen_server:cast(Pid, Msg)
         ||
@@ -83,11 +83,11 @@ parse_irc(Rest) ->
     parse_irc(<<>>, Rest).
 
 parse_irc(Prefix, Rest) ->
-    case re:run(Rest, " :") of 
+    case re:run(Rest, " :") of
         {match, _} ->
             [NewRest, Trailing] = re:split(Rest, " :", [{parts, 2}, {return, binary}]),
             ArgParts = re:split(NewRest, "\s+", [{return, binary}]),
-            Args = lists:append(ArgParts, [Trailing]); 
+            Args = lists:append(ArgParts, [Trailing]);
         _ ->
             Args = re:split(Rest, "\s+", [{return, binary}])
     end,
@@ -106,12 +106,12 @@ get_cmd_args(<<" ", CmdArgs/binary>>) ->
 % if cmd word had text on end, get rid of it
 get_cmd_args(CmdArgs) ->
     case re:split(CmdArgs, " ", [{parts, 2}, {return, binary}]) of
-        [_, GoodCmdArgs] -> get_cmd_args(<<" ", GoodCmdArgs/binary>>); 
+        [_, GoodCmdArgs] -> get_cmd_args(<<" ", GoodCmdArgs/binary>>);
         % cmd arg just had garbage on end with no cmd
-        [_]              -> get_cmd_args(<<" ">>) 
+        [_]              -> get_cmd_args(<<" ">>)
     end.
-        
-% Private functions END 
+
+% Private functions END
 % ---------------------
 
 
@@ -126,7 +126,7 @@ recv_raw(Line) ->
     ParsedMsg = {irc_router, msg_rec, MsgRec},
     gen_server:cast(bot_router, {send_subs, ParsedMsg}).
 
-    
+
 %% Called when connection established
 connected() ->
     Msg = {irc_router, connected},
@@ -158,29 +158,29 @@ bot_cmd_priv(NickFrom, Cmd, Args) ->
     ok.
 
 %% Called when someone starts their channel message out with bot_cmd
-%% Example: <nick> erlbot help 
+%% Example: <nick> erlbot help
 bot_cmd_chan(NickFrom, Channel, Cmd, Args) ->
     Msg = {irc_router, cmd_chan, {NickFrom, Channel, Cmd, Args}},
     send_subs_msg(Msg),
     ok.
 
-% Events END 
+% Events END
 % ------------
 
 % ----------------------------
-% gen_server mailbox functions 
+% gen_server mailbox functions
 
 %% Prefix '<<"nelson!~nelson@localhost">>' Command '<<"PRIVMSG">>' Args '[<<"#erlang">>, <<"Channel messages look like this">>]'
-handle_cast({send_subs, {irc_router, msg_rec, 
-            #irc_msg{prefix=From, cmd = <<"PRIVMSG">>, args=[<<"#", Chan/binary >>, Line]}}}, 
+handle_cast({send_subs, {irc_router, msg_rec,
+            #irc_msg{prefix=From, cmd = <<"PRIVMSG">>, args=[<<"#", Chan/binary >>, Line]}}},
             S = #state{cmd_word=CmdWord}) ->
     Channel = <<"#", Chan/binary>>,
-    [FromNick, _IdentHost] = split_nick(From), 
+    [FromNick, _IdentHost] = split_nick(From),
     case re:split(Line,  <<"^", CmdWord/binary>>, [{parts, 2}, {return, binary}]) of
         [_, CmdArgs] ->
             [Cmd, Args] = get_cmd_args(CmdArgs),
             bot_cmd_chan(FromNick, Channel, Cmd, Args);
-        [_]          -> 
+        [_]          ->
             channel_message(FromNick, Channel, Line)
     end,
     {noreply, S};
@@ -206,7 +206,7 @@ handle_info(Msg, S = #state{}) ->
 
 handle_call({add_sub, Pid}, From, S = #state{subscribers=Subs}) ->
     io:format("[~s] Adding subscriber ~w from ~p~n", [?MODULE, Pid, From]),
-    NewState = S#state{subscribers=[Pid|Subs]}, 
+    NewState = S#state{subscribers=[Pid|Subs]},
     {reply, ok, NewState};
 handle_call({remove_sub, Pid}, _From, S = #state{subscribers=Subs}) ->
     NewSubs = remove_sub(Subs, Pid),
