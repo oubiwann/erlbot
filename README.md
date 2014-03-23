@@ -1,10 +1,7 @@
-######
-erlbot
-######
+# erlbot
 
 
-Introduction
-============
+## Introduction
 
 Like other IRC bots, this erlbot is an irc bot I wrote to help me learn Erlang.
 The plugin system makes it easy to add functionality.
@@ -16,8 +13,7 @@ and #bots. Copy ``./user_conf/user.conf.erl.sample`` to
 Author: dev@wolfplusplus.com
 
 
-Running
-=======
+## Running
 
 ```bash
     $ ./rebar compile
@@ -32,8 +28,7 @@ That will run erlbot in the foreground. If you'd like to daemonize the process:
 ```
 
 
-Stopping
-========
+## Stopping
 
 If you're running in the foregrund, ``^C^C`` will bring you back to the OS
 shell.
@@ -48,8 +43,7 @@ If you're running in daemonized mode:
 application:stop(erlbot).
 
 
-Supervision Tree
-================
+## Supervision Tree
 
 ```
 erlbot_app+->erlbot_sup+->+--+irc_router
@@ -64,8 +58,7 @@ erlbot_app+->erlbot_sup+->+--+irc_router
 ```
 
 
-Design Notes
-============
+## Design Notes
 
 * ``bot_conn`` - Manages the socket connection.
 * ``irc_router`` - Event manager which parses incoming irc messages and notifies
