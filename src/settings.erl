@@ -26,9 +26,13 @@ get(File, Conf, Key) when is_list(Conf) ->
     ConfAtom = erlang:list_to_atom(Conf),
     get(File, ConfAtom, Key);
 get(File, Conf, Key) ->
+    % XXX debug
+    io:format("File: ~p~nConf: ~p~nKey: ~p~n", [File,Conf,Key]),
     case filelib:is_regular(File) of
         true ->
-            {ok, AllSettings} = file:consult(File);
+            {ok, AllSettings} = file:consult(File),
+            % XXX debug
+            io:format("Got settings: ~p~n", [AllSettings]);
         false ->
             AllSettings = []
     end,
@@ -43,7 +47,6 @@ get(File, Conf, Key) ->
             end
     end.
 
-
 get_default(Conf, Key) when is_atom(Conf) ->
     ConfList = erlang:atom_to_list(Conf),
     get_default(ConfList, Key);
@@ -51,7 +54,7 @@ get_default(Conf, Key) ->
     % XXX debug
     %io:format("Conf: ~p~nKey: ~p~n", [Conf,Key]),
     %io:format("Is atom? ~p~n", [is_atom(Key)]),
-    DefaultConf = "../default_conf/" ++ Conf ++ ".conf.erl",
+    DefaultConf = "./default_conf/" ++ Conf ++ ".conf.erl",
     case get(DefaultConf, Conf, Key) of
         undefined ->
             Reason = "Could not find key '"
@@ -64,6 +67,6 @@ get_default(Conf, Key) ->
     end.
 
 get_user(Conf, Key) ->
-    UserConf = "../user_conf/user.conf.erl",
+    UserConf = "./user_conf/user.conf.erl",
     get(UserConf, Conf, Key).
 
