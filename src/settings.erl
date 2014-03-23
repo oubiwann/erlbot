@@ -30,7 +30,7 @@ get(File, Conf, Key) ->
     %io:format("File: ~p~nConf: ~p~nKey: ~p~n", [File,Conf,Key]),
     case filelib:is_regular(File) of
         true ->
-            {ok, AllSettings} = file:consult(File),
+            {ok, AllSettings} = file:consult(File);
             % XXX debug
             %io:format("Got settings: ~p~n", [AllSettings]);
         false ->
