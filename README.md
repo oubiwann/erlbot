@@ -21,10 +21,14 @@ everything to ``stdout``), do the following (you'll need to compile first):
     $ make compile
     $ make dev
 ```
+or
+```bash
+    $ made run
+```
 
 If you'd like to daemonize the process:
 ```bash
-    $ make run
+    $ make prod
 ```
 or
 ```bash
