@@ -4,15 +4,18 @@
 %%% via bot_conn, but through irc_send.
 -module(bot_conn).
 -behavior(gen_server).
-% 30 seconds
--define(RECONNECT_AFTER, 30000).
+
 -export([start_link/1, stop_bot/0, send/1, connect/2]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
                  terminate/2, code_change/3]).
+
+-define(NAME, bot_svc).
+-define(RECONNECT_AFTER, 30000).    % 30 seconds
+
 -record(state, {server, port, sock}).
 
 start_link([Server, Port]) ->
-    gen_server:start_link({local, bot_svc}, ?MODULE, [Server, Port], []).
+    gen_server:start_link({local, ?NAME}, ?MODULE, [Server, Port], []).
 
 init([Server, Port]) ->
     %% Know when parent shuts down
@@ -28,7 +31,7 @@ connect(Host, Port) ->
    io:format("[~s] Connecting to ~s:~p~n", [?MODULE, Host, Port]),
     case gen_tcp:connect(Host, Port, TcpOptions) of
         {ok, Sock} ->
-            gen_server:cast(bot_svc, {new_sock, Sock}),
+            gen_server:cast(?NAME, {new_sock, Sock}),
             irc_router:connected();
         {error, Reason} ->
            io:format("[~s] Error connecting to ~s:~p Reason: ~p~n", [?MODULE, Host, Port, Reason]),
@@ -38,11 +41,11 @@ connect(Host, Port) ->
 
 reconnect() ->
     io:format("Waiting ~p seconds before reconncting~n", [?RECONNECT_AFTER]),
-    erlang:send_after(?RECONNECT_AFTER, bot_svc, {connect}).
+    erlang:send_after(?RECONNECT_AFTER, ?NAME, {connect}).
 
 %%% DO NOT CALL this, use irc_send instead
 send(Line) ->
-    gen_server:cast(bot_svc, {raw_send, Line}),
+    gen_server:cast(?NAME, {raw_send, Line}),
     ok.
 
 handle_cast({new_sock, Sock}, S) ->
@@ -100,4 +103,4 @@ code_change(_OldVsn, S, _Extra) ->
     {ok, S}.
 
 stop_bot() ->
-    gen_server:call(bot_svc, terminate).
+    gen_server:call(?NAME, terminate).
